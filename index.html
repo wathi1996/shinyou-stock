@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shinyou Shabu - ระบบสต็อกสินค้า</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f8f9fa; }
+    .app-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .app-header .icon { width: 30px; height: 30px; background-color: red; border-radius: 50%; }
+    .table thead th { background-color: #e9ecef; }
+    .nav-tabs .nav-link.active { background-color: #0d6efd; color: white; }
+  </style>
+</head>
+<body class="container py-4">
+  <div class="app-header">
+    <div class="icon"></div>
+    <h2 class="mb-0">Shinyou Shabu - ระบบจัดการสต็อกสินค้า</h2>
+  </div>
+
+  <ul class="nav nav-tabs mb-4" id="tabMenu">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#stock">📦 สต็อกคงเหลือ</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#in">➕ รับสินค้า</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#out">➖ เบิกสินค้า</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#adjust">🔄 ปรับสต็อก</a></li>
+  </ul>
+
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="stock">
+      <div class="card mb-4">
+        <div class="card-header">📦 รายการสินค้าคงเหลือ</div>
+        <div class="card-body">
+          <table class="table table-bordered">
+            <thead><tr><th>ชื่อสินค้า</th><th>Supplier</th><th>จำนวน</th><th>หน่วย</th></tr></thead>
+            <tbody id="stockTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="in">
+      <div class="card mb-4">
+        <div class="card-header">➕ รับสินค้า</div>
+        <div class="card-body">
+          <div class="mb-3"><label>วันที่รับสินค้า</label><input type="date" class="form-control" id="stockInDate"></div>
+          <form id="stockInForm">
+            <table class="table table-bordered"><thead><tr><th>ชื่อสินค้า</th><th>Supplier</th><th>จำนวนเข้า</th><th>หน่วย</th></tr></thead>
+              <tbody id="stockInTableBody"></tbody>
+            </table>
+            <button class="btn btn-success w-100" type="submit">💾 บันทึกรับสินค้าทั้งหมด</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="out">
+      <div class="card mb-4">
+        <div class="card-header">➖ เบิกสินค้า</div>
+        <div class="card-body">
+          <div class="mb-3"><label>วันที่เบิกสินค้า</label><input type="date" class="form-control" id="stockOutDate"></div>
+          <form id="stockOutForm">
+            <table class="table table-bordered"><thead><tr><th>ชื่อสินค้า</th><th>Supplier</th><th>จำนวนเบิก</th><th>หน่วย</th></tr></thead>
+              <tbody id="stockOutTableBody"></tbody>
+            </table>
+            <button class="btn btn-danger w-100" type="submit">💾 บันทึกการเบิกสินค้าทั้งหมด</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="adjust">
+      <div class="card mb-4">
+        <div class="card-header">🔄 ปรับปรุงสต็อก</div>
+        <div class="card-body">
+          <div class="mb-3"><label>วันที่ปรับสต็อก</label><input type="date" class="form-control" id="adjustDate"></div>
+          <form id="adjustForm">
+            <table class="table table-bordered"><thead><tr><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือที่ตรวจพบ</th><th>หน่วย</th></tr></thead>
+              <tbody id="adjustTableBody"></tbody>
+            </table>
+            <button class="btn btn-warning w-100" type="submit">💾 บันทึกปรับปรุงสต็อก</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const api = 'https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLg-w5nzTgdQJNywtvf7jlKGcThsgmKoTP_8jRtWMCXkKZXAy4mOc0RRAq7o0jptR4Fz_eoSO_yL6osxOMJhshhfkRmooU2_GKgjWdGSqf6hSeUSQKtvnnZFRkt51A65sPzoSoUWC0FPomwxS8p271WcoqGhjYrC5wlUL0fLdUWs2wLwvMg352rhaARUsjCORnmdCM9gmdZK_WcOTTKP1V6481a-lmsuSSAn9o-LF-L5zfyk2H3-8GrtWta_joykrDSDSBh_gRolPG0PQ9gJBPva6rTSa3SouarrYcmGs6huLDpEwK5lJ6HPkrdAvQ&lib=Mv3mCXhj_bLQzLfdAyMD34UTheHoRRKli';
+
+    async function loadProducts() {
+      const res = await fetch(api);
+      const data = await res.json();
+
+      ['stockInTableBody','stockOutTableBody','adjustTableBody'].forEach(id => {
+        const tbody = document.getElementById(id);
+        tbody.innerHTML = '';
+        data.forEach(item => {
+          const row = document.createElement('tr');
+          row.innerHTML = `<td>${item.name}</td><td>${item.supplier}</td><td><input type="number" class="form-control qty"></td><td>${item.unit}</td>`;
+          tbody.appendChild(row);
+        });
+      });
+
+      const stockBody = document.getElementById('stockTableBody');
+      stockBody.innerHTML = '';
+      data.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${item.name}</td><td>${item.supplier}</td><td>-</td><td>${item.unit}</td>`;
+        stockBody.appendChild(row);
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', loadProducts);
+  </script>
+</body>
+</html>
