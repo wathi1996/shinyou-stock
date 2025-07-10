@@ -101,70 +101,6 @@
         });
       });
     });
-  </script>
-  <style>
-    body { font-family: sans-serif; padding: 20px; }
-    nav { margin-bottom: 20px; }
-    .nav-link { margin-right: 10px; cursor: pointer; padding: 6px 12px; background: #eee; border-radius: 4px; display: inline-block; }
-    .nav-link.active { background: #c33; color: #fff; }
-    .d-none { display: none; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 8px; }
-    input[type="number"] { width: 80px; }
-  </style>
-</head>
-<body>
-  <h2>🔴 ระบบจัดการสต็อก Shinyou Shabu</h2>
-  <nav>
-    <span class="nav-link active" data-target="page-stock">📦 สต็อกคงเหลือ</span>
-    <span class="nav-link" data-target="tab-stockin">➕ รับสินค้า</span>
-    <span class="nav-link" data-target="tab-stockout">➖ เบิกสินค้า</span>
-    <span class="nav-link" data-target="page-adjust">📝 ปรับสต็อก</span>
-  </nav>
-
-  <div id="page-stock" class="page">
-    <h3>📦 รายการสินค้าคงเหลือ</h3>
-    <table>
-      <thead><tr><th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th></tr></thead>
-      <tbody id="stock-table-body"></tbody>
-    </table>
-  </div>
-
-  <div id="tab-stockin" class="page d-none">
-    <h5>➕ รับสินค้าเข้าคลัง</h5>
-    <label>📅 วันที่รับ: <input type="date" id="date-in"></label>
-    <table>
-      <thead>
-        <tr><th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>จำนวนรับ</th></tr>
-      </thead>
-      <tbody id="stockinTable"></tbody>
-    </table>
-    <button onclick="submitForm('submitStockIn', 'stockinTable', 'date-in')">💾 บันทึกรับสินค้า</button>
-  </div>
-
-  <div id="tab-stockout" class="page d-none">
-    <h5>➖ เบิกสินค้าออกจากคลัง</h5>
-    <label>📅 วันที่เบิก: <input type="date" id="date-out"></label>
-    <table>
-      <thead>
-        <tr><th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>จำนวนเบิก</th></tr>
-      </thead>
-      <tbody id="stockoutTable"></tbody>
-    </table>
-    <button onclick="submitForm('submitStockOut', 'stockoutTable', 'date-out')">💾 บันทึกการเบิก</button>
-  </div>
-
-  <div id="page-adjust" class="page d-none">
-    <h3>📝 ปรับสต็อก</h3>
-    <label>📅 วันที่ปรับ: <input type="date" id="date-adjust"></label>
-    <table>
-      <thead>
-        <tr><th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>ปรับใหม่</th></tr>
-      </thead>
-      <tbody id="adjust-table-body"></tbody>
-    </table>
-    <button onclick="submitForm('submitAdjustStock', 'adjust-table-body', 'date-adjust')">💾 บันทึกการปรับ</button>
-  </div>
   <script>
   async function submitForm(action, tableId, dateInputId) {
     const date = document.getElementById(dateInputId).value;
@@ -183,11 +119,16 @@
         const supplier = tds[2]?.textContent?.trim() ?? "";
         const unit = tds[4]?.textContent?.trim() ?? "";
 
+        let qtyLabel = "จำนวน";
+        if (action === "submitStockIn") qtyLabel = "จำนวนเข้า";
+        else if (action === "submitStockOut") qtyLabel = "จำนวนเบิก";
+        else if (action === "submitAdjustStock") qtyLabel = "จำนวนปรับ";
+
         records.push({
           "วันที่": date,
           "ชื่อสินค้า": name,
           "Supplier": supplier,
-          "จำนวนเข้า": qty,
+          [qtyLabel]: qty,
           "หน่วย": unit
         });
       }
