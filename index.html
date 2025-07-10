@@ -35,6 +35,59 @@
       });
     }
 
+    async function submitForm(action, tableId, dateInputId) {
+      const date = document.getElementById(dateInputId).value;
+      if (!date) return alert("⛔ กรุณาเลือกวันที่");
+
+      const rows = document.getElementById(tableId).querySelectorAll("tr");
+      const records = [];
+
+      rows.forEach(row => {
+        const input = row.querySelector("input[name='qty']");
+        if (input && input.value && parseFloat(input.value) > 0) {
+          const name = input.dataset.name;
+          const qty = parseFloat(input.value);
+          const tds = row.querySelectorAll("td");
+          const supplier = tds[2]?.textContent?.trim() ?? "";
+          const unit = tds[4]?.textContent?.trim() ?? "";
+
+          let qtyLabel = "จำนวน";
+          if (action === "submitStockIn") qtyLabel = "จำนวนเข้า";
+          else if (action === "submitStockOut") qtyLabel = "จำนวนเบิก";
+          else if (action === "submitAdjustStock") qtyLabel = "จำนวนปรับ";
+
+          records.push({
+            "วันที่": date,
+            "ชื่อสินค้า": name,
+            "Supplier": supplier,
+            [qtyLabel]: qty,
+            "หน่วย": unit
+          });
+        }
+      });
+
+      if (records.length === 0) return alert("⛔ กรุณาใส่จำนวนสินค้าที่ต้องการบันทึก");
+
+      try {
+        const res = await fetch(API_URL + "?action=" + action, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(records)
+        });
+
+        const text = await res.text();
+        if (text.includes("Success")) {
+          alert("✅ บันทึกสำเร็จ");
+          loadProductsForAllTables();
+        } else {
+          throw new Error(text);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("❌ เกิดข้อผิดพลาด");
+      }
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       loadProductsForAllTables();
       document.querySelectorAll(".nav-link").forEach(link => {
