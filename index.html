@@ -11,8 +11,8 @@
         const res = await fetch(`${API_URL}?action=getProducts`);
         const data = await res.json();
         renderTable("stock-table-body", data, false);
-        renderTable("stockin-table-body", data, true);
-        renderTable("stockout-table-body", data, true);
+        renderTable("stockinTable", data, true);
+        renderTable("stockoutTable", data, true);
         renderTable("adjust-table-body", data, true);
       } catch (err) {
         console.error('loadProducts error', err);
@@ -35,49 +35,15 @@
       });
     }
 
-    function submitForm(action, tableId, dateId) {
-      const date = document.getElementById(dateId).value;
-      const rows = document.querySelectorAll(`#${tableId} input[name="qty"]`);
-      const payload = [];
-
-      rows.forEach(row => {
-        const qty = parseFloat(row.value);
-        if (!isNaN(qty) && qty !== 0) {
-          payload.push({
-            'ชื่อสินค้า': row.dataset.name,
-            'จำนวน': qty,
-            'วันที่': date
-          });
-        }
-      });
-
-      if (payload.length === 0) {
-        alert("กรุณาระบุจำนวนสินค้าก่อนกดบันทึก");
-        return;
-      }
-
-      fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        redirect: "follow",
-      })
-      .then(res => res.text())
-      .then(msg => alert("✅ บันทึกข้อมูลสำเร็จ"))
-      .catch(err => alert("❌ เกิดข้อผิดพลาด"));
-    }
-
     document.addEventListener("DOMContentLoaded", () => {
       loadProductsForAllTables();
-
       document.querySelectorAll(".nav-link").forEach(link => {
         link.addEventListener("click", () => {
-          document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
           document.querySelectorAll(".page").forEach(p => p.classList.add("d-none"));
-
-          link.classList.add("active");
+          document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
           const target = link.dataset.target;
           document.getElementById(target).classList.remove("d-none");
+          link.classList.add("active");
         });
       });
     });
@@ -90,20 +56,18 @@
     .d-none { display: none; }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { border: 1px solid #ccc; padding: 8px; }
-    input[type="number"], input[type="date"] { width: 100px; }
-    .btn-save { margin-top: 10px; padding: 8px 16px; background: green; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    input[type="number"] { width: 80px; }
   </style>
 </head>
 <body>
   <h2>🔴 ระบบจัดการสต็อก Shinyou Shabu</h2>
   <nav>
     <span class="nav-link active" data-target="page-stock">📦 สต็อกคงเหลือ</span>
-    <span class="nav-link" data-target="page-stockin">➕ รับสินค้า</span>
-    <span class="nav-link" data-target="page-stockout">➖ เบิกสินค้า</span>
+    <span class="nav-link" data-target="tab-stockin">➕ รับสินค้า</span>
+    <span class="nav-link" data-target="tab-stockout">➖ เบิกสินค้า</span>
     <span class="nav-link" data-target="page-adjust">📝 ปรับสต็อก</span>
   </nav>
 
-  <!-- สต็อกคงเหลือ -->
   <div id="page-stock" class="page">
     <h3>📦 รายการสินค้าคงเหลือ</h3>
     <table>
@@ -112,37 +76,40 @@
     </table>
   </div>
 
-  <!-- รับสินค้า -->
-  <div id="page-stockin" class="page d-none">
-    <h3>➕ รับสินค้าเข้าคลัง</h3>
+  <div id="tab-stockin" class="page d-none">
+    <h5>➕ รับสินค้าเข้าคลัง</h5>
     <label>📅 วันที่รับ: <input type="date" id="date-in"></label>
     <table>
-      <thead><tr><th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>จำนวนรับ</th></tr></thead>
-      <tbody id="stockin-table-body"></tbody>
+      <thead>
+        <tr><th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>จำนวนรับ</th></tr>
+      </thead>
+      <tbody id="stockinTable"></tbody>
     </table>
-    <button class="btn-save" onclick="submitForm('submitStockIn', 'stockin-table-body', 'date-in')">💾 บันทึกรับสินค้า</button>
+    <button onclick="submitForm('submitStockIn', 'stockinTable', 'date-in')">💾 บันทึกรับสินค้า</button>
   </div>
 
-  <!-- เบิกสินค้า -->
-  <div id="page-stockout" class="page d-none">
-    <h3>➖ เบิกสินค้าออกจากคลัง</h3>
+  <div id="tab-stockout" class="page d-none">
+    <h5>➖ เบิกสินค้าออกจากคลัง</h5>
     <label>📅 วันที่เบิก: <input type="date" id="date-out"></label>
     <table>
-      <thead><tr><th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>จำนวนเบิก</th></tr></thead>
-      <tbody id="stockout-table-body"></tbody>
+      <thead>
+        <tr><th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>จำนวนเบิก</th></tr>
+      </thead>
+      <tbody id="stockoutTable"></tbody>
     </table>
-    <button class="btn-save" onclick="submitForm('submitStockOut', 'stockout-table-body', 'date-out')">💾 บันทึกการเบิก</button>
+    <button onclick="submitForm('submitStockOut', 'stockoutTable', 'date-out')">💾 บันทึกการเบิก</button>
   </div>
 
-  <!-- ปรับสต็อก -->
   <div id="page-adjust" class="page d-none">
     <h3>📝 ปรับสต็อก</h3>
     <label>📅 วันที่ปรับ: <input type="date" id="date-adjust"></label>
     <table>
-      <thead><tr><th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>ปรับใหม่</th></tr></thead>
+      <thead>
+        <tr><th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>ปรับใหม่</th></tr>
+      </thead>
       <tbody id="adjust-table-body"></tbody>
     </table>
-    <button class="btn-save" onclick="submitForm('submitAdjustStock', 'adjust-table-body', 'date-adjust')">💾 บันทึกการปรับ</button>
+    <button onclick="submitForm('submitAdjustStock', 'adjust-table-body', 'date-adjust')">💾 บันทึกการปรับ</button>
   </div>
 </body>
 </html>
