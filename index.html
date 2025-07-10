@@ -75,21 +75,48 @@
     </table>
   </div>
 
-  <div id="page-stockin" class="page d-none">
-    <h3>➕ รับสินค้าเข้าคลัง</h3>
-    <table>
-      <thead><tr><th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>รับเข้า</th></tr></thead>
-      <tbody id="stockin-table-body"></tbody>
+<div id="tab-stockin" class="tab-pane d-none">
+  <h5>➕ รับสินค้าเข้าคลัง</h5>
+  <label>📅 วันที่รับ: <input type="date" id="date-in"></label>
+  <div class="table-responsive mt-3">
+    <table class="table table-bordered">
+      <thead class="table-success">
+        <tr>
+          <th>#</th>
+          <th>ชื่อสินค้า</th>
+          <th>Supplier</th>
+          <th>คงเหลือ</th>
+          <th>หน่วย</th>
+          <th>จำนวนรับ</th>
+        </tr>
+      </thead>
+      <tbody id="stockinTable"><tr><td colspan="6">⏳ กำลังโหลด...</td></tr></tbody>
     </table>
   </div>
+  <button class="btn btn-success mt-2" onclick="submitForm('submitStockIn', 'stockinTable', 'date-in')">💾 บันทึกรับสินค้า</button>
+</div>
 
-  <div id="page-stockout" class="page d-none">
-    <h3>➖ เบิกสินค้าออก</h3>
-    <table>
-      <thead><tr><th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>จำนวนเบิก</th></tr></thead>
-      <tbody id="stockout-table-body"></tbody>
+
+  <div id="tab-stockout" class="tab-pane d-none">
+  <h5>➖ เบิกสินค้าออกจากคลัง</h5>
+  <label>📅 วันที่เบิก: <input type="date" id="date-out"></label>
+  <div class="table-responsive mt-3">
+    <table class="table table-bordered">
+      <thead class="table-warning">
+        <tr>
+          <th>#</th>
+          <th>ชื่อสินค้า</th>
+          <th>Supplier</th>
+          <th>คงเหลือ</th>
+          <th>หน่วย</th>
+          <th>จำนวนเบิก</th>
+        </tr>
+      </thead>
+      <tbody id="stockoutTable"><tr><td colspan="6">⏳ กำลังโหลด...</td></tr></tbody>
     </table>
   </div>
+  <button class="btn btn-warning mt-2" onclick="submitForm('submitStockOut', 'stockoutTable', 'date-out')">💾 บันทึกการเบิก</button>
+</div>
 
 <div id="page-adjust" class="page d-none">
   <h3>📝 ปรับสต็อก</h3>
