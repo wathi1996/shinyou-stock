@@ -3,14 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <title>ระบบจัดการสต็อก Shinyou Shabu</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      margin-top: 10px;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f3f3f3;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>📦 ระบบจัดการสต็อก <b>Shinyou Shabu</b></h1>
+  <button onclick="fetchProducts()">📥 โหลดข้อมูล</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>ชื่อสินค้า</th>
+        <th>หมวดหมู่</th>
+        <th>Supplier</th>
+        <th>คงเหลือ</th>
+        <th>หน่วย</th>
+      </tr>
+    </thead>
+    <tbody id="productTableBody">
+      <tr><td colspan="6">⏳ รอกำลังโหลดข้อมูล...</td></tr>
+    </tbody>
+  </table>
+
   <script>
-    const sheetUrl = 'https://script.google.com/macros/s/AKfycbzXm73QqMTFitNhRSx9zSWwzLGzBIfwZObOhKAS9pMuwed4bqu0ONeH8_U6yV6IPlefAA/exec'; // เปลี่ยนตรงนี้ให้เป็น Web App URL จริง ๆ
+    const sheetUrl = 'https://script.google.com/macros/s/AKfycbzXm73QqMTFitNhRSx9zSWwzLGzBIfwZObOhKAS9pMuwed4bqu0ONeH8_U6yV6IPlefAA/exec'; // 👈 เปลี่ยนตรงนี้
 
     async function fetchProducts() {
+      const tableBody = document.getElementById('productTableBody');
+      tableBody.innerHTML = `<tr><td colspan="6">⏳ รอกำลังโหลดข้อมูล...</td></tr>`;
+
       try {
         const res = await fetch(`${sheetUrl}?action=getProducts`);
         const data = await res.json();
-        const tableBody = document.getElementById('productTableBody');
         tableBody.innerHTML = '';
         data.forEach((item, index) => {
           const row = document.createElement('tr');
@@ -24,33 +69,12 @@
           `;
           tableBody.appendChild(row);
         });
-      } catch (error) {
-        const tableBody = document.getElementById('productTableBody');
-        tableBody.innerHTML = `<tr><td colspan="6" style="color:red">❌ เกิดข้อผิดพลาด: ${error.message}</td></tr>`;
+      } catch (err) {
+        tableBody.innerHTML = `<tr><td colspan="6" class="error">❌ เกิดข้อผิดพลาด: ${err.message}</td></tr>`;
       }
     }
 
     window.onload = fetchProducts;
   </script>
-</head>
-<body>
-  <h1>📦 ระบบจัดการสต็อก <b>Shinyou Shabu</b></h1>
-  <button onclick="fetchProducts()">📥 โหลดข้อมูล</button>
-
-  <table border="1" cellpadding="8">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>ชื่อสินค้า</th>
-        <th>หมวดหมู่</th>
-        <th>Supplier</th>
-        <th>คงเหลือ</th>
-        <th>หน่วย</th>
-      </tr>
-    </thead>
-    <tbody id="productTableBody">
-      <tr><td colspan="6">⏳ กำลังโหลดข้อมูล...</td></tr>
-    </tbody>
-  </table>
 </body>
 </html>
