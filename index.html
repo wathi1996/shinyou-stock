@@ -7,10 +7,41 @@
     body {
       font-family: sans-serif;
       padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    nav {
+      margin-bottom: 30px;
+      text-align: center;
     }
     nav button {
-      margin-right: 10px;
-      padding: 10px 15px;
+      margin: 0 5px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+    nav button:hover {
+      background: #0056b3;
+    }
+    nav button.active {
+      background: #28a745;
     }
     table {
       width: 100%;
@@ -19,122 +50,264 @@
     }
     th, td {
       border: 1px solid #ddd;
-      padding: 8px;
+      padding: 12px;
       text-align: center;
     }
     th {
-      background-color: #f2f2f2;
+      background-color: #f8f9fa;
+      font-weight: bold;
     }
     .d-none {
       display: none;
     }
+    input[type="date"] {
+      padding: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    input[type="number"] {
+      width: 80px;
+      padding: 5px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .submit-btn {
+      background: #28a745;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    .submit-btn:hover {
+      background: #218838;
+    }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .stock-low {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    .stock-zero {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
   </style>
 </head>
 <body>
-  <h1>📦 ระบบจัดการสต็อก Shinyou Shabu</h1>
+  <div class="container">
+    <h1>📦 ระบบจัดการสต็อก Shinyou Shabu</h1>
 
-  <nav>
-    <button class="nav-link active" data-target="dashboard">📊 Dashboard</button>
-    <button class="nav-link" data-target="stockin">📥 รับสินค้าเข้า</button>
-    <button class="nav-link" data-target="stockout">📤 เบิกสินค้า</button>
-    <button class="nav-link" data-target="adjust">🛠 ปรับสต็อก</button>
-  </nav>
+    <nav>
+      <button class="nav-link active" data-target="dashboard">📊 Dashboard</button>
+      <button class="nav-link" data-target="stockin">📥 รับสินค้าเข้า</button>
+      <button class="nav-link" data-target="stockout">📤 เบิกสินค้า</button>
+      <button class="nav-link" data-target="adjust">🛠 ปรับสต็อก</button>
+    </nav>
 
-  <!-- Dashboard -->
-  <section id="dashboard" class="page">
-    <h2>📊 รายการสินค้าทั้งหมด</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th>
-        </tr>
-      </thead>
-      <tbody id="stock-table-body"></tbody>
-    </table>
-  </section>
+    <!-- Dashboard -->
+    <section id="dashboard" class="page">
+      <h2>📊 รายการสินค้าทั้งหมด</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th>
+          </tr>
+        </thead>
+        <tbody id="stock-table-body">
+          <tr><td colspan="5" class="loading">กำลังโหลด...</td></tr>
+        </tbody>
+      </table>
+    </section>
 
-  <!-- Stock In -->
-  <section id="stockin" class="page d-none">
-    <h2>📥 บันทึกรับสินค้าเข้า</h2>
-    <input type="date" id="stockin-date">
-    <table>
-      <thead>
-        <tr>
-          <th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>จำนวนเข้า</th>
-        </tr>
-      </thead>
-      <tbody id="stockinTable"></tbody>
-    </table>
-    <button onclick="submitForm('submitStockIn', 'stockinTable', 'stockin-date')">✅ บันทึกสินค้าเข้า</button>
-  </section>
+    <!-- Stock In -->
+    <section id="stockin" class="page d-none">
+      <h2>📥 บันทึกรับสินค้าเข้า</h2>
+      <input type="date" id="stockin-date" required>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>จำนวนเข้า</th>
+          </tr>
+        </thead>
+        <tbody id="stockinTable">
+          <tr><td colspan="6" class="loading">กำลังโหลด...</td></tr>
+        </tbody>
+      </table>
+      <button class="submit-btn" onclick="submitForm('submitStockIn', 'stockinTable', 'stockin-date')">✅ บันทึกสินค้าเข้า</button>
+    </section>
 
-  <!-- Stock Out -->
-  <section id="stockout" class="page d-none">
-    <h2>📤 บันทึกการเบิกสินค้า</h2>
-    <input type="date" id="stockout-date">
-    <table>
-      <thead>
-        <tr>
-          <th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>จำนวนเบิก</th>
-        </tr>
-      </thead>
-      <tbody id="stockoutTable"></tbody>
-    </table>
-    <button onclick="submitForm('submitStockOut', 'stockoutTable', 'stockout-date')">✅ บันทึกการเบิกสินค้า</button>
-  </section>
+    <!-- Stock Out -->
+    <section id="stockout" class="page d-none">
+      <h2>📤 บันทึกการเบิกสินค้า</h2>
+      <input type="date" id="stockout-date" required>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>จำนวนเบิก</th>
+          </tr>
+        </thead>
+        <tbody id="stockoutTable">
+          <tr><td colspan="6" class="loading">กำลังโหลด...</td></tr>
+        </tbody>
+      </table>
+      <button class="submit-btn" onclick="submitForm('submitStockOut', 'stockoutTable', 'stockout-date')">✅ บันทึกการเบิกสินค้า</button>
+    </section>
 
-  <!-- Adjust Stock -->
-  <section id="adjust" class="page d-none">
-    <h2>🛠 ปรับปรุงจำนวนสินค้า</h2>
-    <input type="date" id="adjust-date">
-    <table>
-      <thead>
-        <tr>
-          <th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>จำนวนปรับ</th>
-        </tr>
-      </thead>
-      <tbody id="adjust-table-body"></tbody>
-    </table>
-    <button onclick="submitForm('submitAdjustStock', 'adjust-table-body', 'adjust-date')">✅ บันทึกการปรับสต็อก</button>
-  </section>
+    <!-- Adjust Stock -->
+    <section id="adjust" class="page d-none">
+      <h2>🛠 ปรับปรุงจำนวนสินค้า</h2>
+      <input type="date" id="adjust-date" required>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>ชื่อสินค้า</th><th>Supplier</th><th>คงเหลือ</th><th>หน่วย</th><th>จำนวนปรับ</th>
+          </tr>
+        </thead>
+        <tbody id="adjust-table-body">
+          <tr><td colspan="6" class="loading">กำลังโหลด...</td></tr>
+        </tbody>
+      </table>
+      <button class="submit-btn" onclick="submitForm('submitAdjustStock', 'adjust-table-body', 'adjust-date')">✅ บันทึกการปรับสต็อก</button>
+    </section>
+  </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyimeiJRuZn6tRwLPIAOfiKMHwuy7WkL8Bu6ppvJOSpMwSdyX7BAABf9h_zPAyld0_5VQ/exec";
+    // ใช้ URL ของ Google Apps Script ของคุณที่นี่
+    const API_URL = "https://script.google.com/macros/s/AKfycbzXm73QqMTFitNhRSx9zSWwzLGzBIfwZObOhKAS9pMuwed4bqu0ONeH8_U6yV6IPlefAA/exec";
 
-    async function loadProductsForAllTables() {
+    // ฟังก์ชันทดสอบการเชื่อมต่อ
+    async function testConnection() {
+      console.log('Testing connection...');
       try {
-        const res = await fetch(`${API_URL}?action=getProducts`);
-        const data = await res.json();
-        renderTable("stock-table-body", data, false);
-        renderTable("stockinTable", data, true);
-        renderTable("stockoutTable", data, true);
-        renderTable("adjust-table-body", data, true);
-      } catch (err) {
-        console.error('loadProducts error', err);
+        const testUrl = `${API_URL}?action=getProducts&test=1`;
+        console.log('Test URL:', testUrl);
+        
+        const response = await fetch(testUrl, {
+          method: 'GET',
+          cache: 'no-cache'
+        });
+        
+        console.log('Test response status:', response.status);
+        console.log('Test response headers:', [...response.headers.entries()]);
+        
+        const text = await response.text();
+        console.log('Test response body:', text);
+        
+        alert('ทดสอบการเชื่อมต่อสำเร็จ!\nดูรายละเอียดใน Console (F12)');
+        
+      } catch (error) {
+        console.error('Connection test failed:', error);
+        alert('การทดสอบการเชื่อมต่อล้มเหลว: ' + error.message);
       }
     }
 
+    // ฟังก์ชันสำหรับโหลดข้อมูลสินค้า
+    async function loadProductsForAllTables() {
+      try {
+        console.log('Loading products from:', API_URL);
+        
+        const response = await fetch(`${API_URL}?action=getProducts&t=${Date.now()}`, {
+          method: 'GET',
+          cache: 'no-cache',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const text = await response.text();
+        console.log('Response text:', text);
+        
+        const data = JSON.parse(text);
+        console.log('Parsed data:', data);
+        
+        if (data && Array.isArray(data) && data.length > 0) {
+          renderTable("stock-table-body", data, false);
+          renderTable("stockinTable", data, true);
+          renderTable("stockoutTable", data, true);
+          renderTable("adjust-table-body", data, true);
+          
+          // ซ่อน error message ถ้ามี
+          const errorDiv = document.querySelector('.error');
+          if (errorDiv) errorDiv.remove();
+          
+          console.log('Successfully loaded real data');
+        } else {
+          throw new Error('No valid data received');
+        }
+        
+      } catch (error) {
+        console.error('Error loading products:', error);
+        
+        // ลองใช้ข้อมูลจำลองเพื่อทดสอบ
+        const mockData = [
+          { name: 'เนื้อหมู', supplier: 'ABC Co.', stock: 50, unit: 'กิโลกรัม' },
+          { name: 'เนื้อวัว', supplier: 'XYZ Ltd.', stock: 30, unit: 'กิโลกรัม' }
+        ];
+        
+        renderTable("stock-table-body", mockData, false);
+        renderTable("stockinTable", mockData, true);
+        renderTable("stockoutTable", mockData, true);
+        renderTable("adjust-table-body", mockData, true);
+        
+        showError('ไม่สามารถโหลดข้อมูลจริงได้ กำลังใช้ข้อมูลจำลอง - ' + error.message);
+      }
+    }
+
+    // ฟังก์ชันสำหรับแสดงข้อมูลในตาราง
     function renderTable(targetId, data, withInput) {
       const tbody = document.getElementById(targetId);
       tbody.innerHTML = "";
+      
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="' + (withInput ? '6' : '5') + '">ไม่พบข้อมูล</td></tr>';
+        return;
+      }
+      
       data.forEach((item, index) => {
+        const stockClass = item.stock === 0 ? 'stock-zero' : (item.stock < 10 ? 'stock-low' : '');
+        
         const row = `
-          <tr>
+          <tr class="${stockClass}">
             <td>${index + 1}</td>
             <td>${item.name}</td>
             <td>${item.supplier}</td>
             <td>${item.stock}</td>
             <td>${item.unit}</td>
-            ${withInput ? `<td><input type="number" name="qty" data-name="${item.name}" /></td>` : ""}
+            ${withInput ? `<td><input type="number" min="0" step="0.01" name="qty" data-name="${item.name}" placeholder="0" /></td>` : ""}
           </tr>
         `;
         tbody.insertAdjacentHTML("beforeend", row);
       });
     }
 
+    // ฟังก์ชันสำหรับส่งข้อมูล
     async function submitForm(action, tableId, dateInputId) {
       const date = document.getElementById(dateInputId).value;
-      if (!date) return alert("⛔ กรุณาเลือกวันที่");
+      if (!date) {
+        alert("⛔ กรุณาเลือกวันที่");
+        return;
+      }
 
       const rows = document.getElementById(tableId).querySelectorAll("tr");
       const records = [];
@@ -163,36 +336,85 @@
         }
       });
 
-      if (records.length === 0) return alert("⛔ กรุณาใส่จำนวนสินค้าที่ต้องการบันทึก");
+      if (records.length === 0) {
+        alert("⛔ กรุณาใส่จำนวนสินค้าที่ต้องการบันทึก");
+        return;
+      }
 
       try {
-        const res = await fetch(`${API_URL}?action=${action}`, {
+        // ใช้ FormData สำหรับ Google Apps Script
+        const formData = new FormData();
+        formData.append('action', action);
+        formData.append('data', JSON.stringify(records));
+
+        const response = await fetch(API_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(records)
+          body: formData
         });
-        const text = await res.text();
-        if (text.includes("Success")) {
+
+        const result = await response.text();
+        
+        if (result.includes("Success")) {
           alert("✅ บันทึกสำเร็จ");
+          // ล้างข้อมูลในฟอร์ม
+          clearForm(tableId);
+          document.getElementById(dateInputId).value = '';
+          // โหลดข้อมูลใหม่
           loadProductsForAllTables();
         } else {
-          throw new Error(text);
+          throw new Error(result);
         }
-      } catch (err) {
-        console.error(err);
-        alert("❌ เกิดข้อผิดพลาด");
+      } catch (error) {
+        console.error('Submit error:', error);
+        alert("❌ เกิดข้อผิดพลาด: " + error.message);
       }
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
+    // ฟังก์ชันสำหรับล้างฟอร์ม
+    function clearForm(tableId) {
+      const inputs = document.getElementById(tableId).querySelectorAll("input[name='qty']");
+      inputs.forEach(input => input.value = '');
+    }
+
+    // ฟังก์ชันสำหรับแสดงข้อผิดพลาด
+    function showError(message) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error';
+      errorDiv.textContent = message;
+      document.querySelector('.container').insertBefore(errorDiv, document.querySelector('nav'));
+      
+      setTimeout(() => {
+        errorDiv.remove();
+      }, 5000);
+    }
+
+    // เริ่มต้นโปรแกรม
+    document.addEventListener("DOMContentLoaded", function() {
+      // โหลดข้อมูลเมื่อเริ่มต้น
       loadProductsForAllTables();
+      
+      // ตั้งค่าวันที่เป็นวันปัจจุบัน
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('stockin-date').value = today;
+      document.getElementById('stockout-date').value = today;
+      document.getElementById('adjust-date').value = today;
+      
+      // เพิ่มปุ่มทดสอบการเชื่อมต่อ
+      const testButton = document.createElement('button');
+      testButton.textContent = '🔧 ทดสอบการเชื่อมต่อ';
+      testButton.onclick = testConnection;
+      testButton.style.cssText = 'margin: 10px; padding: 8px 15px; background: #ffc107; color: #212529; border: none; border-radius: 4px; cursor: pointer;';
+      document.querySelector('nav').appendChild(testButton);
+      
+      // จัดการการเปลี่ยนแท็บ
       document.querySelectorAll(".nav-link").forEach(link => {
-        link.addEventListener("click", () => {
-          document.querySelectorAll(".page").forEach(p => p.classList.add("d-none"));
-          document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
-          const target = link.dataset.target;
-          document.getElementById(target).classList.remove("d-none");
-          link.classList.add("active");
+        link.addEventListener("click", function() {
+          document.querySelectorAll(".page").forEach(page => page.classList.add("d-none"));
+          document.querySelectorAll(".nav-link").forEach(nav => nav.classList.remove("active"));
+          
+          const targetId = this.dataset.target;
+          document.getElementById(targetId).classList.remove("d-none");
+          this.classList.add("active");
         });
       });
     });
