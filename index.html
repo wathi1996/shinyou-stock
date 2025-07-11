@@ -186,119 +186,133 @@
   </div>
 
   <script>
-    // ใช้ URL ของ Google Apps Script ของคุณที่นี่
- const API_URL = "https://script.google.com/macros/s/AKfycbzXm73QqMTFitNhRSx9zSWwzLGzBIfwZObOhKAS9pMuwed4bqu0ONeH8_U6yV6IPlefAA/exec"; // เปลี่ยนตรงนี้
+    const API_URL = "https://script.google.com/macros/s/AKfycbzXm73QqMTFitNhRSx9zSWwzLGzBIfwZObOhKAS9pMuwed4bqu0ONeH8_U6yV6IPlefAA/exec"; // 🔁 เปลี่ยนตรงนี้
 
-async function submitForm(action, tableId, dateInputId) {
-  const date = document.getElementById(dateInputId).value;
-  if (!date) {
-    alert("⛔ กรุณาเลือกวันที่");
-    return;
-  }
+    async function loadProductsForAllTables() {
+      try {
+        const response = await fetch(`${API_URL}?action=getProducts&t=${Date.now()}`, {
+          method: 'GET',
+          cache: 'no-cache'
+        });
+        const data = await response.json();
+        renderTable("stock-table-body", data, false);
+        renderTable("stockinTable", data, true);
+        renderTable("stockoutTable", data, true);
+        renderTable("adjust-table-body", data, true);
+      } catch (error) {
+        console.error('Error loading products:', error);
+        const mockData = [
+          { name: 'เนื้อหมู', supplier: 'ABC Co.', stock: 50, unit: 'กิโลกรัม' },
+          { name: 'เนื้อวัว', supplier: 'XYZ Ltd.', stock: 30, unit: 'กิโลกรัม' }
+        ];
+        renderTable("stock-table-body", mockData, false);
+        renderTable("stockinTable", mockData, true);
+        renderTable("stockoutTable", mockData, true);
+        renderTable("adjust-table-body", mockData, true);
+        showError('⚠️ โหลดข้อมูลจริงไม่สำเร็จ กำลังใช้ mock data');
+      }
+    }
 
-  const rows = document.getElementById(tableId).querySelectorAll("tr");
-  const records = [];
-
-  rows.forEach(row => {
-    const input = row.querySelector("input[name='qty']");
-    if (input && input.value && parseFloat(input.value) > 0) {
-      const name = input.dataset.name;
-      const qty = parseFloat(input.value);
-      const tds = row.querySelectorAll("td");
-      const supplier = tds[2]?.textContent?.trim() ?? "";
-      const unit = tds[4]?.textContent?.trim() ?? "";
-
-      let qtyLabel = "จำนวน";
-      if (action === "submitStockIn") qtyLabel = "จำนวนเข้า";
-      else if (action === "submitStockOut") qtyLabel = "จำนวนเบิก";
-      else if (action === "submitAdjustStock") qtyLabel = "จำนวนปรับ";
-
-      records.push({
-        "วันที่": date,
-        "ชื่อสินค้า": name,
-        "Supplier": supplier,
-        [qtyLabel]: qty,
-        "หน่วย": unit
+    function renderTable(targetId, data, withInput) {
+      const tbody = document.getElementById(targetId);
+      tbody.innerHTML = "";
+      data.forEach((item, i) => {
+        const stockClass = item.stock === 0 ? 'stock-zero' : (item.stock < 10 ? 'stock-low' : '');
+        const row = `
+          <tr class="${stockClass}">
+            <td>${i + 1}</td>
+            <td>${item.name}</td>
+            <td>${item.supplier}</td>
+            <td>${item.stock}</td>
+            <td>${item.unit}</td>
+            ${withInput ? `<td><input type="number" name="qty" data-name="${item.name}" step="0.01" /></td>` : ''}
+          </tr>
+        `;
+        tbody.insertAdjacentHTML('beforeend', row);
       });
     }
-  });
 
-  if (records.length === 0) {
-    alert("⛔ กรุณาใส่จำนวนสินค้าที่ต้องการบันทึก");
-    return;
-  }
+    async function submitForm(action, tableId, dateId) {
+      const date = document.getElementById(dateId).value;
+      if (!date) return alert("กรุณาเลือกวันที่");
 
-  try {
-    const formData = new FormData();
-    formData.append('action', action);
-    formData.append('data', JSON.stringify(records));
+      const records = [];
+      const rows = document.querySelectorAll(`#${tableId} tr`);
+      rows.forEach(row => {
+        const input = row.querySelector("input[name='qty']");
+        if (input && input.value && parseFloat(input.value) > 0) {
+          const name = input.dataset.name;
+          const qty = parseFloat(input.value);
+          const tds = row.querySelectorAll("td");
+          const supplier = tds[2]?.textContent ?? "";
+          const unit = tds[4]?.textContent ?? "";
+          const qtyLabel = action === 'submitStockIn' ? 'จำนวนเข้า' : action === 'submitStockOut' ? 'จำนวนเบิก' : 'จำนวนปรับ';
 
-    const response = await fetch(API_URL, {
-      method: "POST",
-      body: formData,
-    });
+          records.push({ "วันที่": date, "ชื่อสินค้า": name, "Supplier": supplier, [qtyLabel]: qty, "หน่วย": unit });
+        }
+      });
 
-    const result = await response.text();
-    if (result.includes("Success")) {
-      alert("✅ บันทึกสำเร็จ");
-      clearForm(tableId);
-      document.getElementById(dateInputId).value = '';
-      loadProductsForAllTables();
-    } else {
-      throw new Error(result);
+      if (records.length === 0) return alert("กรุณากรอกจำนวนก่อนบันทึก");
+
+      const formData = new FormData();
+      formData.append("action", action);
+      formData.append("data", JSON.stringify(records));
+
+      try {
+        const res = await fetch(API_URL, { method: "POST", body: formData });
+        const text = await res.text();
+        if (text.includes("Success")) {
+          alert("✅ บันทึกสำเร็จ");
+          clearForm(tableId);
+          loadProductsForAllTables();
+        } else throw new Error(text);
+      } catch (err) {
+        alert("❌ เกิดข้อผิดพลาด: " + err.message);
+      }
     }
-  } catch (error) {
-    console.error('Submit error:', error);
-    alert("❌ เกิดข้อผิดพลาด: " + error.message);
-  }
-}
 
-
-    // ฟังก์ชันสำหรับล้างฟอร์ม
     function clearForm(tableId) {
-      const inputs = document.getElementById(tableId).querySelectorAll("input[name='qty']");
-      inputs.forEach(input => input.value = '');
+      const inputs = document.querySelectorAll(`#${tableId} input[name='qty']`);
+      inputs.forEach(i => i.value = '');
     }
 
-    // ฟังก์ชันสำหรับแสดงข้อผิดพลาด
-    function showError(message) {
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'error';
-      errorDiv.textContent = message;
-      document.querySelector('.container').insertBefore(errorDiv, document.querySelector('nav'));
-      
-      setTimeout(() => {
-        errorDiv.remove();
-      }, 5000);
+    function showError(msg) {
+      const div = document.createElement('div');
+      div.className = 'error';
+      div.textContent = msg;
+      document.querySelector('.container').insertBefore(div, document.querySelector('nav'));
+      setTimeout(() => div.remove(), 5000);
     }
 
-    // เริ่มต้นโปรแกรม
-    document.addEventListener("DOMContentLoaded", function() {
-      // โหลดข้อมูลเมื่อเริ่มต้น
+    async function testConnection() {
+      try {
+        const res = await fetch(`${API_URL}?action=getProducts`);
+        const data = await res.json();
+        alert(`✅ เชื่อมต่อสำเร็จ มี ${data.length} รายการ`);
+      } catch (e) {
+        alert("❌ ล้มเหลว: " + e.message);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
       loadProductsForAllTables();
-      
-      // ตั้งค่าวันที่เป็นวันปัจจุบัน
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('stockin-date').value = today;
-      document.getElementById('stockout-date').value = today;
-      document.getElementById('adjust-date').value = today;
-      
-      // เพิ่มปุ่มทดสอบการเชื่อมต่อ
-      const testButton = document.createElement('button');
-      testButton.textContent = '🔧 ทดสอบการเชื่อมต่อ';
-      testButton.onclick = testConnection;
-      testButton.style.cssText = 'margin: 10px; padding: 8px 15px; background: #ffc107; color: #212529; border: none; border-radius: 4px; cursor: pointer;';
-      document.querySelector('nav').appendChild(testButton);
-      
-      // จัดการการเปลี่ยนแท็บ
+      const today = new Date().toISOString().split("T")[0];
+      document.getElementById("stockin-date").value = today;
+      document.getElementById("stockout-date").value = today;
+      document.getElementById("adjust-date").value = today;
+
+      const btn = document.createElement("button");
+      btn.textContent = "🔧 ทดสอบการเชื่อมต่อ";
+      btn.onclick = testConnection;
+      btn.style.cssText = "margin:10px;padding:8px 15px;background:#ffc107;color:#212529;border:none;border-radius:4px;cursor:pointer";
+      document.querySelector("nav").appendChild(btn);
+
       document.querySelectorAll(".nav-link").forEach(link => {
-        link.addEventListener("click", function() {
-          document.querySelectorAll(".page").forEach(page => page.classList.add("d-none"));
-          document.querySelectorAll(".nav-link").forEach(nav => nav.classList.remove("active"));
-          
-          const targetId = this.dataset.target;
-          document.getElementById(targetId).classList.remove("d-none");
+        link.addEventListener("click", function () {
+          document.querySelectorAll(".page").forEach(p => p.classList.add("d-none"));
+          document.querySelectorAll(".nav-link").forEach(b => b.classList.remove("active"));
           this.classList.add("active");
+          document.getElementById(this.dataset.target).classList.remove("d-none");
         });
       });
     });
