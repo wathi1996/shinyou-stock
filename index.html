@@ -1,11 +1,10 @@
-<!-- index.html สำหรับ GitHub -->
 <!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8">
   <title>ระบบจัดการสต็อก Shinyou Shabu</title>
   <script>
-    const sheetUrl = 'https://script.google.com/macros/s/AKfycbxXm73QqMTiThNRs9x2SWwzLGzBIfwZ0b0hKAS9pMuwed4bquQ0NeH8_U6yV6IP1efAA/exec'; // ใส่ URL Web App ที่ Deploy แล้ว
+    const sheetUrl = 'https://script.google.com/macros/s/xxxxxxxxxxxxxxxxxxxxxxx/exec'; // เปลี่ยนตรงนี้ให้เป็น Web App URL จริง ๆ
 
     async function fetchProducts() {
       try {
@@ -13,21 +12,21 @@
         const data = await res.json();
         const tableBody = document.getElementById('productTableBody');
         tableBody.innerHTML = '';
-
         data.forEach((item, index) => {
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${index + 1}</td>
-            <td>${item.name || ''}</td>
-            <td>${item.category || ''}</td>
-            <td>${item.supplier || ''}</td>
-            <td>${item.stock || ''}</td>
-            <td>${item.unit || ''}</td>
+            <td>${item.name || '-'}</td>
+            <td>${item.category || '-'}</td>
+            <td>${item.supplier || '-'}</td>
+            <td>${item.stock || '-'}</td>
+            <td>${item.unit || '-'}</td>
           `;
           tableBody.appendChild(row);
         });
-      } catch (err) {
-        document.getElementById('productTableBody').innerHTML = `<tr><td colspan="6">❌ เกิดข้อผิดพลาด: ${err.message}</td></tr>`;
+      } catch (error) {
+        const tableBody = document.getElementById('productTableBody');
+        tableBody.innerHTML = `<tr><td colspan="6" style="color:red">❌ เกิดข้อผิดพลาด: ${error.message}</td></tr>`;
       }
     }
 
@@ -35,8 +34,9 @@
   </script>
 </head>
 <body>
-  <h1>📦 ระบบจัดการสต็อก Shinyou Shabu</h1>
-  <button onclick="fetchProducts()">🔁 โหลดข้อมูล</button>
+  <h1>📦 ระบบจัดการสต็อก <b>Shinyou Shabu</b></h1>
+  <button onclick="fetchProducts()">📥 โหลดข้อมูล</button>
+
   <table border="1" cellpadding="8">
     <thead>
       <tr>
@@ -49,7 +49,7 @@
       </tr>
     </thead>
     <tbody id="productTableBody">
-      <tr><td colspan="6">📡 กำลังโหลดข้อมูล...</td></tr>
+      <tr><td colspan="6">⏳ กำลังโหลดข้อมูล...</td></tr>
     </tbody>
   </table>
 </body>
