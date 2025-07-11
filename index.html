@@ -187,188 +187,72 @@
 
   <script>
     // ใช้ URL ของ Google Apps Script ของคุณที่นี่
-    const API_URL = "https://script.google.com/macros/s/AKfycbzXm73QqMTFitNhRSx9zSWwzLGzBIfwZObOhKAS9pMuwed4bqu0ONeH8_U6yV6IPlefAA/exec";
+ const API_URL = "https://script.google.com/macros/s/AKfycbzXm73QqMTFitNhRSx9zSWwzLGzBIfwZObOhKAS9pMuwed4bqu0ONeH8_U6yV6IPlefAA/exec"; // เปลี่ยนตรงนี้
 
-    // ฟังก์ชันทดสอบการเชื่อมต่อ
-    async function testConnection() {
-      console.log('Testing connection...');
-      try {
-        const testUrl = `${API_URL}?action=getProducts&test=1`;
-        console.log('Test URL:', testUrl);
-        
-        const response = await fetch(testUrl, {
-          method: 'GET',
-          cache: 'no-cache'
-        });
-        
-        console.log('Test response status:', response.status);
-        console.log('Test response headers:', [...response.headers.entries()]);
-        
-        const text = await response.text();
-        console.log('Test response body:', text);
-        
-        alert('ทดสอบการเชื่อมต่อสำเร็จ!\nดูรายละเอียดใน Console (F12)');
-        
-      } catch (error) {
-        console.error('Connection test failed:', error);
-        alert('การทดสอบการเชื่อมต่อล้มเหลว: ' + error.message);
-      }
-    }
+async function submitForm(action, tableId, dateInputId) {
+  const date = document.getElementById(dateInputId).value;
+  if (!date) {
+    alert("⛔ กรุณาเลือกวันที่");
+    return;
+  }
 
-    // ฟังก์ชันสำหรับโหลดข้อมูลสินค้า
-    async function loadProductsForAllTables() {
-      try {
-        console.log('Loading products from:', API_URL);
-        
-        const response = await fetch(`${API_URL}?action=getProducts&t=${Date.now()}`, {
-          method: 'GET',
-          cache: 'no-cache',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-        
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const text = await response.text();
-        console.log('Response text:', text);
-        
-        const data = JSON.parse(text);
-        console.log('Parsed data:', data);
-        
-        if (data && Array.isArray(data) && data.length > 0) {
-          renderTable("stock-table-body", data, false);
-          renderTable("stockinTable", data, true);
-          renderTable("stockoutTable", data, true);
-          renderTable("adjust-table-body", data, true);
-          
-          // ซ่อน error message ถ้ามี
-          const errorDiv = document.querySelector('.error');
-          if (errorDiv) errorDiv.remove();
-          
-          console.log('Successfully loaded real data');
-        } else {
-          throw new Error('No valid data received');
-        }
-        
-      } catch (error) {
-        console.error('Error loading products:', error);
-        
-        // ลองใช้ข้อมูลจำลองเพื่อทดสอบ
-        const mockData = [
-          { name: 'เนื้อหมู', supplier: 'ABC Co.', stock: 50, unit: 'กิโลกรัม' },
-          { name: 'เนื้อวัว', supplier: 'XYZ Ltd.', stock: 30, unit: 'กิโลกรัม' }
-        ];
-        
-        renderTable("stock-table-body", mockData, false);
-        renderTable("stockinTable", mockData, true);
-        renderTable("stockoutTable", mockData, true);
-        renderTable("adjust-table-body", mockData, true);
-        
-        showError('ไม่สามารถโหลดข้อมูลจริงได้ กำลังใช้ข้อมูลจำลอง - ' + error.message);
-      }
-    }
+  const rows = document.getElementById(tableId).querySelectorAll("tr");
+  const records = [];
 
-    // ฟังก์ชันสำหรับแสดงข้อมูลในตาราง
-    function renderTable(targetId, data, withInput) {
-      const tbody = document.getElementById(targetId);
-      tbody.innerHTML = "";
-      
-      if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="' + (withInput ? '6' : '5') + '">ไม่พบข้อมูล</td></tr>';
-        return;
-      }
-      
-      data.forEach((item, index) => {
-        const stockClass = item.stock === 0 ? 'stock-zero' : (item.stock < 10 ? 'stock-low' : '');
-        
-        const row = `
-          <tr class="${stockClass}">
-            <td>${index + 1}</td>
-            <td>${item.name}</td>
-            <td>${item.supplier}</td>
-            <td>${item.stock}</td>
-            <td>${item.unit}</td>
-            ${withInput ? `<td><input type="number" min="0" step="0.01" name="qty" data-name="${item.name}" placeholder="0" /></td>` : ""}
-          </tr>
-        `;
-        tbody.insertAdjacentHTML("beforeend", row);
+  rows.forEach(row => {
+    const input = row.querySelector("input[name='qty']");
+    if (input && input.value && parseFloat(input.value) > 0) {
+      const name = input.dataset.name;
+      const qty = parseFloat(input.value);
+      const tds = row.querySelectorAll("td");
+      const supplier = tds[2]?.textContent?.trim() ?? "";
+      const unit = tds[4]?.textContent?.trim() ?? "";
+
+      let qtyLabel = "จำนวน";
+      if (action === "submitStockIn") qtyLabel = "จำนวนเข้า";
+      else if (action === "submitStockOut") qtyLabel = "จำนวนเบิก";
+      else if (action === "submitAdjustStock") qtyLabel = "จำนวนปรับ";
+
+      records.push({
+        "วันที่": date,
+        "ชื่อสินค้า": name,
+        "Supplier": supplier,
+        [qtyLabel]: qty,
+        "หน่วย": unit
       });
     }
+  });
 
-    // ฟังก์ชันสำหรับส่งข้อมูล
-    async function submitForm(action, tableId, dateInputId) {
-      const date = document.getElementById(dateInputId).value;
-      if (!date) {
-        alert("⛔ กรุณาเลือกวันที่");
-        return;
-      }
+  if (records.length === 0) {
+    alert("⛔ กรุณาใส่จำนวนสินค้าที่ต้องการบันทึก");
+    return;
+  }
 
-      const rows = document.getElementById(tableId).querySelectorAll("tr");
-      const records = [];
+  try {
+    const formData = new FormData();
+    formData.append('action', action);
+    formData.append('data', JSON.stringify(records));
 
-      rows.forEach(row => {
-        const input = row.querySelector("input[name='qty']");
-        if (input && input.value && parseFloat(input.value) > 0) {
-          const name = input.dataset.name;
-          const qty = parseFloat(input.value);
-          const tds = row.querySelectorAll("td");
-          const supplier = tds[2]?.textContent?.trim() ?? "";
-          const unit = tds[4]?.textContent?.trim() ?? "";
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: formData,
+    });
 
-          let qtyLabel = "จำนวน";
-          if (action === "submitStockIn") qtyLabel = "จำนวนเข้า";
-          else if (action === "submitStockOut") qtyLabel = "จำนวนเบิก";
-          else if (action === "submitAdjustStock") qtyLabel = "จำนวนปรับ";
-
-          records.push({
-            "วันที่": date,
-            "ชื่อสินค้า": name,
-            "Supplier": supplier,
-            [qtyLabel]: qty,
-            "หน่วย": unit
-          });
-        }
-      });
-
-      if (records.length === 0) {
-        alert("⛔ กรุณาใส่จำนวนสินค้าที่ต้องการบันทึก");
-        return;
-      }
-
-      try {
-        // ใช้ FormData สำหรับ Google Apps Script
-        const formData = new FormData();
-        formData.append('action', action);
-        formData.append('data', JSON.stringify(records));
-
-        const response = await fetch(API_URL, {
-          method: "POST",
-          body: formData
-        });
-
-        const result = await response.text();
-        
-        if (result.includes("Success")) {
-          alert("✅ บันทึกสำเร็จ");
-          // ล้างข้อมูลในฟอร์ม
-          clearForm(tableId);
-          document.getElementById(dateInputId).value = '';
-          // โหลดข้อมูลใหม่
-          loadProductsForAllTables();
-        } else {
-          throw new Error(result);
-        }
-      } catch (error) {
-        console.error('Submit error:', error);
-        alert("❌ เกิดข้อผิดพลาด: " + error.message);
-      }
+    const result = await response.text();
+    if (result.includes("Success")) {
+      alert("✅ บันทึกสำเร็จ");
+      clearForm(tableId);
+      document.getElementById(dateInputId).value = '';
+      loadProductsForAllTables();
+    } else {
+      throw new Error(result);
     }
+  } catch (error) {
+    console.error('Submit error:', error);
+    alert("❌ เกิดข้อผิดพลาด: " + error.message);
+  }
+}
+
 
     // ฟังก์ชันสำหรับล้างฟอร์ม
     function clearForm(tableId) {
