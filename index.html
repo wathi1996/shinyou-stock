@@ -2,142 +2,650 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบจัดการสต็อก Shinyou Shabu</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Kanit', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .main-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      margin: 20px auto;
+      max-width: 1400px;
+    }
+    .welcome-screen {
+      text-align: center;
+      padding: 80px 40px;
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+      color: white;
+      border-radius: 20px;
+      margin: 50px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .welcome-screen::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255,255,255,0.1) 10px,
+        rgba(255,255,255,0.1) 20px
+      );
+      animation: shimmer 3s linear infinite;
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    .logo-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+      position: relative;
+      z-index: 1;
+    }
+    .start-btn {
+      background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 100%);
+      border: none;
+      border-radius: 50px;
+      padding: 15px 40px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+    .start-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+      background: linear-gradient(45deg, #fecfef 0%, #ff9a9e 100%);
+    }
+    .navbar-custom {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 15px;
+      margin: 20px;
+      padding: 10px 20px;
+    }
+    .nav-btn {
+      background: rgba(255,255,255,0.2);
+      border: 2px solid rgba(255,255,255,0.3);
+      color: white;
+      border-radius: 25px;
+      padding: 10px 20px;
+      margin: 0 5px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+    .nav-btn:hover, .nav-btn.active {
+      background: rgba(255,255,255,0.9);
+      color: #333;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .section-header {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+      color: white;
       padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      text-align: center;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
     }
-    table {
-      border-collapse: collapse;
-      margin-top: 10px;
-      width: 100%;
+    .table-container {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
     }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
+    .table {
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .table thead th {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+      border: none;
+      padding: 15px;
+      font-weight: 600;
       text-align: center;
     }
-    th {
-      background-color: #f3f3f3;
+    .table tbody td {
+      padding: 12px;
+      vertical-align: middle;
+      text-align: center;
+      border-color: #e9ecef;
     }
-    .error {
-      color: red;
+    .table tbody tr:hover {
+      background-color: #f8f9fa;
+      transform: scale(1.01);
+      transition: all 0.2s ease;
+    }
+    .stock-low {
+      background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+      color: #856404;
+    }
+    .stock-zero {
+      background: linear-gradient(135deg, #f8d7da 0%, #fab1a0 100%);
+      color: #721c24;
+    }
+    .stock-good {
+      background: linear-gradient(135deg, #d4edda 0%, #00b894 100%);
+      color: #155724;
+    }
+    .form-control {
+      border-radius: 10px;
+      border: 2px solid #e9ecef;
+      padding: 10px 15px;
+      transition: all 0.3s ease;
+    }
+    .form-control:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    .btn-submit {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 25px;
+      padding: 12px 30px;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+    .loading-spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .alert-custom {
+      border: none;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .date-input-container {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .stock-input {
+      width: 100px;
+      border-radius: 8px;
+      border: 2px solid #e9ecef;
+      padding: 8px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .stock-input:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    .supplier-badge {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #333;
+    }
+    .d-none {
+      display: none !important;
     }
   </style>
 </head>
 <body>
-  <h1>📦 ระบบจัดการสต็อก <b>Shinyou Shabu</b></h1>
-  <button onclick="fetchProducts()">📥 โหลดข้อมูล</button>
+  <!-- Welcome Screen -->
+  <div id="welcome-screen" class="welcome-screen">
+    <div class="logo-icon">🍲</div>
+    <h1 class="display-4 mb-4">Shinyou Shabu</h1>
+    <p class="lead mb-4">ระบบจัดการสต็อกสินค้าอัจฉริยะ</p>
+    <button class="btn start-btn" onclick="startApp()">
+      <i class="bi bi-play-circle-fill me-2"></i>
+      เริ่มใช้งาน
+    </button>
+  </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>ชื่อสินค้า</th>
-        <th>หมวดหมู่</th>
-        <th>Supplier</th>
-        <th>คงเหลือ</th>
-        <th>หน่วย</th>
-      </tr>
-    </thead>
-    <tbody id="productTableBody">
-      <tr><td colspan="6">⏳ รอกำลังโหลดข้อมูล...</td></tr>
-    </tbody>
-  </table>
+  <!-- Main Application -->
+  <div id="main-app" class="main-container d-none">
+    <!-- Navigation -->
+    <nav class="navbar-custom">
+      <div class="container-fluid">
+        <div class="d-flex align-items-center">
+          <span class="navbar-brand text-white me-4">
+            <i class="bi bi-shop text-danger me-2"></i>
+            <strong>Shinyou Shabu</strong>
+          </span>
+        </div>
+        <div class="d-flex flex-wrap justify-content-center">
+          <button class="btn nav-btn active" data-target="dashboard">
+            <i class="bi bi-graph-up me-2"></i>Dashboard
+          </button>
+          <button class="btn nav-btn" data-target="stockin">
+            <i class="bi bi-box-arrow-in-down me-2"></i>รับสินค้า
+          </button>
+          <button class="btn nav-btn" data-target="stockout">
+            <i class="bi bi-box-arrow-up me-2"></i>เบิกสินค้า
+          </button>
+          <button class="btn nav-btn" data-target="adjust">
+            <i class="bi bi-gear me-2"></i>ปรับสต็อก
+          </button>
+        </div>
+      </div>
+    </nav>
 
+    <!-- Dashboard -->
+    <section id="dashboard" class="container page">
+      <div class="section-header">
+        <h2><i class="bi bi-graph-up me-2"></i>สรุปภาพรวมสินค้า</h2>
+        <p class="mb-0">ตรวจสอบจำนวนสินค้าคงเหลือทั้งหมด</p>
+      </div>
+      
+      <div class="table-container">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>ชื่อสินค้า</th>
+                <th>Supplier</th>
+                <th>จำนวนคงเหลือ</th>
+                <th>หน่วย</th>
+                <th>สถานะ</th>
+              </tr>
+            </thead>
+            <tbody id="stock-table-body">
+              <tr>
+                <td colspan="6" class="text-center">
+                  <div class="loading-spinner"></div>
+                  <div>กำลังโหลดข้อมูล...</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stock In -->
+    <section id="stockin" class="container page d-none">
+      <div class="section-header">
+        <h2><i class="bi bi-box-arrow-in-down me-2"></i>บันทึกรับสินค้าเข้า</h2>
+        <p class="mb-0">บันทึกสินค้าที่รับเข้าใหม่</p>
+      </div>
+      
+      <div class="date-input-container">
+        <label for="stockin-date" class="form-label h5">
+          <i class="bi bi-calendar-event me-2"></i>วันที่รับสินค้า
+        </label>
+        <input type="date" id="stockin-date" class="form-control mx-auto" style="width: 200px;" required>
+      </div>
+
+      <div class="table-container">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>ชื่อสินค้า</th>
+                <th>Supplier</th>
+                <th>คงเหลือ</th>
+                <th>หน่วย</th>
+                <th>จำนวนเข้า</th>
+              </tr>
+            </thead>
+            <tbody id="stockinTable">
+              <tr>
+                <td colspan="6" class="text-center">
+                  <div class="loading-spinner"></div>
+                  <div>กำลังโหลดข้อมูล...</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="text-center">
+          <button class="btn btn-submit" onclick="submitForm('submitStockIn', 'stockinTable', 'stockin-date')">
+            <i class="bi bi-check-circle me-2"></i>บันทึกสินค้าเข้า
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stock Out -->
+    <section id="stockout" class="container page d-none">
+      <div class="section-header">
+        <h2><i class="bi bi-box-arrow-up me-2"></i>บันทึกการเบิกสินค้า</h2>
+        <p class="mb-0">บันทึกสินค้าที่เบิกออกจากคลัง</p>
+      </div>
+      
+      <div class="date-input-container">
+        <label for="stockout-date" class="form-label h5">
+          <i class="bi bi-calendar-event me-2"></i>วันที่เบิกสินค้า
+        </label>
+        <input type="date" id="stockout-date" class="form-control mx-auto" style="width: 200px;" required>
+      </div>
+
+      <div class="table-container">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>ชื่อสินค้า</th>
+                <th>Supplier</th>
+                <th>คงเหลือ</th>
+                <th>หน่วย</th>
+                <th>จำนวนเบิก</th>
+              </tr>
+            </thead>
+            <tbody id="stockoutTable">
+              <tr>
+                <td colspan="6" class="text-center">
+                  <div class="loading-spinner"></div>
+                  <div>กำลังโหลดข้อมูล...</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="text-center">
+          <button class="btn btn-submit" onclick="submitForm('submitStockOut', 'stockoutTable', 'stockout-date')">
+            <i class="bi bi-check-circle me-2"></i>บันทึกการเบิกสินค้า
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Adjust Stock -->
+    <section id="adjust" class="container page d-none">
+      <div class="section-header">
+        <h2><i class="bi bi-gear me-2"></i>ปรับปรุงสต็อกสินค้า</h2>
+        <p class="mb-0">ปรับแก้จำนวนสินค้าให้ตรงกับการตรวจนับจริง</p>
+      </div>
+      
+      <div class="date-input-container">
+        <label for="adjust-date" class="form-label h5">
+          <i class="bi bi-calendar-event me-2"></i>วันที่ปรับสต็อก
+        </label>
+        <input type="date" id="adjust-date" class="form-control mx-auto" style="width: 200px;" required>
+      </div>
+
+      <div class="table-container">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>ชื่อสินค้า</th>
+                <th>Supplier</th>
+                <th>คงเหลือ</th>
+                <th>หน่วย</th>
+                <th>จำนวนใหม่</th>
+              </tr>
+            </thead>
+            <tbody id="adjust-table-body">
+              <tr>
+                <td colspan="6" class="text-center">
+                  <div class="loading-spinner"></div>
+                  <div>กำลังโหลดข้อมูล...</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="text-center">
+          <button class="btn btn-submit" onclick="submitForm('submitAdjustStock', 'adjust-table-body', 'adjust-date')">
+            <i class="bi bi-check-circle me-2"></i>บันทึกการปรับสต็อก
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
   <script>
-    const sheetUrl = 'https://script.google.com/macros/s/AKfycbzXm73QqMTFitNhRSx9zSWwzLGzBIfwZObOhKAS9pMuwed4bqu0ONeH8_U6yV6IPlefAA/exec'; // 👈 เปลี่ยนตรงนี้
+    // ใช้ URL ของ Google Apps Script ของคุณที่นี่
+    const API_URL = "https://script.google.com/macros/s/AKfycbzXm73QqMTFitNhRSx9zSWwzLGzBIfwZObOhKAS9pMuwed4bqu0ONeH8_U6yV6IPlefAA/exec";
 
-    async function fetchProducts() {
-      const tableBody = document.getElementById('productTableBody');
-      tableBody.innerHTML = `<tr><td colspan="6">⏳ รอกำลังโหลดข้อมูล...</td></tr>`;
+    function startApp() {
+      document.getElementById('welcome-screen').classList.add('d-none');
+      document.getElementById('main-app').classList.remove('d-none');
+      loadProductsForAllTables();
+    }
 
+    // ฟังก์ชันสำหรับโหลดข้อมูลสินค้า
+    async function loadProductsForAllTables() {
       try {
-        const res = await fetch(`${sheetUrl}?action=getProducts`);
-        const data = await res.json();
-        tableBody.innerHTML = '';
-        data.forEach((item, index) => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${item.name || '-'}</td>
-            <td>${item.category || '-'}</td>
-            <td>${item.supplier || '-'}</td>
-            <td>${item.stock || '-'}</td>
-            <td>${item.unit || '-'}</td>
-          `;
-          tableBody.appendChild(row);
-        });
-      } catch (err) {
-        tableBody.innerHTML = `<tr><td colspan="6" class="error">❌ เกิดข้อผิดพลาด: ${err.message}</td></tr>`;
+        const response = await fetch(`${API_URL}?action=getProducts`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        
+        renderTable("stock-table-body", data, false);
+        renderTable("stockinTable", data, true);
+        renderTable("stockoutTable", data, true);
+        renderTable("adjust-table-body", data, true);
+      } catch (error) {
+        console.error('Error loading products:', error);
+        showAlert('ไม่สามารถโหลดข้อมูลสินค้าได้', 'danger');
       }
     }
 
-    window.onload = fetchProducts;
+    // ฟังก์ชันสำหรับแสดงข้อมูลในตาราง
+    function renderTable(targetId, data, withInput) {
+      const tbody = document.getElementById(targetId);
+      tbody.innerHTML = "";
+      
+      if (!data || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${withInput ? '6' : '6'}" class="text-center">ไม่พบข้อมูล</td></tr>`;
+        return;
+      }
+      
+      data.forEach((item, index) => {
+        let stockClass = '';
+        let stockStatus = '';
+        
+        if (item.stock === 0) {
+          stockClass = 'stock-zero';
+          stockStatus = '<span class="badge bg-danger">หมดสต็อก</span>';
+        } else if (item.stock < 10) {
+          stockClass = 'stock-low';
+          stockStatus = '<span class="badge bg-warning">สต็อกน้อย</span>';
+        } else {
+          stockClass = 'stock-good';
+          stockStatus = '<span class="badge bg-success">ปกติ</span>';
+        }
+        
+        const supplierBadge = `<span class="supplier-badge">${item.supplier}</span>`;
+        
+        const row = `
+          <tr class="${stockClass}">
+            <td><strong>${index + 1}</strong></td>
+            <td class="text-start">${item.name}</td>
+            <td>${supplierBadge}</td>
+            <td><strong>${item.stock}</strong></td>
+            <td>${item.unit}</td>
+            ${withInput ? 
+              `<td><input type="number" class="form-control stock-input" min="0" step="0.01" name="qty" data-name="${item.name}" placeholder="0" /></td>` 
+              : `<td>${stockStatus}</td>`
+            }
+          </tr>
+        `;
+        tbody.insertAdjacentHTML("beforeend", row);
+      });
+    }
+
+    // ฟังก์ชันสำหรับส่งข้อมูล
+    async function submitForm(action, tableId, dateInputId) {
+      const date = document.getElementById(dateInputId).value;
+      if (!date) {
+        showAlert("กรุณาเลือกวันที่", "warning");
+        return;
+      }
+
+      const rows = document.getElementById(tableId).querySelectorAll("tr");
+      const records = [];
+
+      rows.forEach(row => {
+        const input = row.querySelector("input[name='qty']");
+        if (input && input.value && parseFloat(input.value) > 0) {
+          const name = input.dataset.name;
+          const qty = parseFloat(input.value);
+          const tds = row.querySelectorAll("td");
+          const supplierElement = tds[2]?.querySelector('.supplier-badge');
+          const supplier = supplierElement ? supplierElement.textContent.trim() : "";
+          const unit = tds[4]?.textContent?.trim() ?? "";
+
+          let qtyLabel = "จำนวน";
+          if (action === "submitStockIn") qtyLabel = "จำนวนเข้า";
+          else if (action === "submitStockOut") qtyLabel = "จำนวนเบิก";
+          else if (action === "submitAdjustStock") qtyLabel = "จำนวนปรับ";
+
+          records.push({
+            "วันที่": date,
+            "ชื่อสินค้า": name,
+            "Supplier": supplier,
+            [qtyLabel]: qty,
+            "หน่วย": unit
+          });
+        }
+      });
+
+      if (records.length === 0) {
+        showAlert("กรุณาใส่จำนวนสินค้าที่ต้องการบันทึก", "warning");
+        return;
+      }
+
+      try {
+        showLoading(true);
+        
+        const formData = new FormData();
+        formData.append('action', action);
+        formData.append('data', JSON.stringify(records));
+
+        const response = await fetch(API_URL, {
+          method: "POST",
+          body: formData
+        });
+
+        const result = await response.text();
+        
+        if (result.includes("Success")) {
+          showAlert("บันทึกสำเร็จ", "success");
+          clearForm(tableId);
+          document.getElementById(dateInputId).value = getTodayDate();
+          loadProductsForAllTables();
+        } else {
+          throw new Error(result);
+        }
+      } catch (error) {
+        console.error('Submit error:', error);
+        showAlert("เกิดข้อผิดพลาด: " + error.message, "danger");
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // ฟังก์ชันสำหรับล้างฟอร์ม
+    function clearForm(tableId) {
+      const inputs = document.getElementById(tableId).querySelectorAll("input[name='qty']");
+      inputs.forEach(input => input.value = '');
+    }
+
+    // ฟังก์ชันสำหรับแสดงการแจ้งเตือน
+    function showAlert(message, type) {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type} alert-custom alert-dismissible fade show`;
+      alertDiv.innerHTML = `
+        <strong><i class="bi bi-${type === 'success' ? 'check-circle' : type === 'danger' ? 'x-circle' : 'exclamation-triangle'} me-2"></i></strong>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      
+      document.querySelector('.main-container').insertBefore(alertDiv, document.querySelector('.main-container').firstChild);
+      
+      setTimeout(() => {
+        alertDiv.remove();
+      }, 5000);
+    }
+
+    // ฟังก์ชันสำหรับแสดง Loading
+    function showLoading(show) {
+      const submitButtons = document.querySelectorAll('.btn-submit');
+      submitButtons.forEach(btn => {
+        if (show) {
+          btn.disabled = true;
+          btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังบันทึก...';
+        } else {
+          btn.disabled = false;
+          btn.innerHTML = btn.getAttribute('data-original-text') || btn.innerHTML.replace(/.*?กำลังบันทึก.../, btn.innerHTML);
+        }
+      });
+    }
+
+    // ฟังก์ชันสำหรับหาวันที่วันนี้
+    function getTodayDate() {
+      return new Date().toISOString().split('T')[0];
+    }
+
+    // เริ่มต้นโปรแกรม
+    document.addEventListener("DOMContentLoaded", function() {
+      // ตั้งค่าวันที่เป็นวันปัจจุบัน
+      const today = getTodayDate();
+      document.getElementById('stockin-date').value = today;
+      document.getElementById('stockout-date').value = today;
+      document.getElementById('adjust-date').value = today;
+      
+      // จัดการการเปลี่ยนแท็บ
+      document.querySelectorAll(".nav-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+          // ซ่อนหน้าทั้งหมด
+          document.querySelectorAll(".page").forEach(page => page.classList.add("d-none"));
+          // เอาคลาส active ออกจากปุ่มทั้งหมด
+          document.querySelectorAll(".nav-btn").forEach(nav => nav.classList.remove("active"));
+          
+          // แสดงหน้าที่เลือก
+          const targetId = this.dataset.target;
+          document.getElementById(targetId).classList.remove("d-none");
+          this.classList.add("active");
+        });
+      });
+    });
   </script>
-</body>
-</html>
-
-<!DOCTYPE html>
-<html lang="th">
-<head>
-  <meta charset="UTF-8">
-  <title>📥 รับสินค้าเข้า - Shinyou Shabu</title>
-</head>
-<body>
-  <h1>📥 รับสินค้าเข้า - Shinyou Shabu</h1>
-  <div style="margin-bottom: 10px;">
-    <a href="index.html"><button>📊 Dashboard</button></a>
-    <a href="stockin.html"><button>📥 รับสินค้าเข้า</button></a>
-    <a href="stockout.html"><button>📤 เบิกสินค้า</button></a>
-    <a href="adjuststock.html"><button>🛠️ ปรับสต็อก</button></a>
-    <a href="test.html"><button>🔌 ทดสอบการเชื่อมต่อ</button></a>
-  </div>
-
-  <p>หน้านี้ใช้สำหรับรับสินค้าเข้า 📦</p>
-  <!-- ฟอร์มรับสินค้า สามารถพัฒนาเพิ่มต่อได้ -->
-</body>
-</html>
-
-<!DOCTYPE html>
-<html lang="th">
-<head>
-  <meta charset="UTF-8">
-  <title>📤 เบิกสินค้า - Shinyou Shabu</title>
-</head>
-<body>
-  <h1>📤 เบิกสินค้า - Shinyou Shabu</h1>
-  <div style="margin-bottom: 10px;">
-    <a href="index.html"><button>📊 Dashboard</button></a>
-    <a href="stockin.html"><button>📥 รับสินค้าเข้า</button></a>
-    <a href="stockout.html"><button>📤 เบิกสินค้า</button></a>
-    <a href="adjuststock.html"><button>🛠️ ปรับสต็อก</button></a>
-    <a href="test.html"><button>🔌 ทดสอบการเชื่อมต่อ</button></a>
-  </div>
-
-  <p>หน้านี้ใช้สำหรับเบิกสินค้าออกจากสต็อก 🛒</p>
-  <!-- ฟอร์มเบิกสินค้า -->
-</body>
-</html>
-
-<!DOCTYPE html>
-<html lang="th">
-<head>
-  <meta charset="UTF-8">
-  <title>🛠️ ปรับสต็อก - Shinyou Shabu</title>
-</head>
-<body>
-  <h1>🛠️ ปรับสต็อก - Shinyou Shabu</h1>
-  <div style="margin-bottom: 10px;">
-    <a href="index.html"><button>📊 Dashboard</button></a>
-    <a href="stockin.html"><button>📥 รับสินค้าเข้า</button></a>
-    <a href="stockout.html"><button>📤 เบิกสินค้า</button></a>
-    <a href="adjuststock.html"><button>🛠️ ปรับสต็อก</button></a>
-    <a href="test.html"><button>🔌 ทดสอบการเชื่อมต่อ</button></a>
-  </div>
-
-  <p>หน้านี้ใช้สำหรับปรับปรุงจำนวนสินค้าคงเหลือ 🧮</p>
-  <!-- ฟอร์มปรับสต็อก -->
 </body>
 </html>
