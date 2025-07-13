@@ -370,9 +370,207 @@
       box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
       background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
     }
+    
+    /* Login Screen Styles */
+    .login-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+    
+    .login-container {
+      background: white;
+      border-radius: 25px;
+      padding: 50px 40px;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.2);
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .login-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #ff6b6b 0%, #ee5a24 100%);
+    }
+    
+    .login-logo {
+      font-size: 60px;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1));
+    }
+    
+    .login-title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    
+    .login-subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+    
+    .login-form {
+      margin-bottom: 30px;
+    }
+    
+    .login-input-group {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    
+    .login-input {
+      width: 100%;
+      padding: 15px 20px 15px 50px;
+      border: 2px solid #e9ecef;
+      border-radius: 15px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      background: #f8f9fa;
+    }
+    
+    .login-input:focus {
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+      outline: none;
+    }
+    
+    .login-input-icon {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #667eea;
+      font-size: 18px;
+    }
+    
+    .login-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 15px;
+      padding: 15px;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+    
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+    }
+    
+    .login-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .login-error {
+      background: linear-gradient(135deg, #f8d7da 0%, #fab1a0 100%);
+      color: #721c24;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: none;
+      font-weight: 500;
+      animation: shake 0.5s ease-in-out;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    .password-toggle {
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #667eea;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.3s ease;
+    }
+    
+    .password-toggle:hover {
+      color: #764ba2;
+    }
   </style>
 </head>
 <body>
+  <!-- Login Screen -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-container">
+      <div class="login-logo">🔐</div>
+      <h1 class="login-title">Shinyou Shabu</h1>
+      <p class="login-subtitle">ระบบจัดการสต็อกสินค้า</p>
+      
+      <div id="login-error" class="login-error d-none">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง
+      </div>
+      
+      <form class="login-form" id="login-form">
+        <div class="login-input-group">
+          <i class="bi bi-person-fill login-input-icon"></i>
+          <input 
+            type="text" 
+            class="login-input" 
+            id="username" 
+            placeholder="ชื่อผู้ใช้" 
+            required
+            autocomplete="username"
+          >
+        </div>
+        
+        <div class="login-input-group">
+          <i class="bi bi-lock-fill login-input-icon"></i>
+          <input 
+            type="password" 
+            class="login-input" 
+            id="password" 
+            placeholder="รหัสผ่าน" 
+            required
+            autocomplete="current-password"
+          >
+          <i class="bi bi-eye password-toggle" id="password-toggle" onclick="togglePassword()"></i>
+        </div>
+        
+        <button type="submit" class="login-btn" id="login-btn">
+          <i class="bi bi-box-arrow-in-right me-2"></i>
+          เข้าสู่ระบบ
+        </button>
+      </form>
+      
+      <div style="color: #999; font-size: 12px; margin-top: 20px;">
+        <i class="bi bi-shield-check me-1"></i>
+        ระบบรักษาความปลอดภัย
+      </div>
+    </div>
+  </div>
+
   <!-- Welcome Screen -->
   <div id="welcome-screen" class="welcome-screen">
     <div class="logo-icon">🍲</div>
@@ -395,7 +593,7 @@
             <strong>Shinyou Shabu</strong>
           </span>
         </div>
-        <div class="d-flex flex-wrap justify-content-center">
+        <div class="d-flex flex-wrap justify-content-center align-items-center">
           <button class="btn nav-btn active" data-target="dashboard">
             <i class="bi bi-graph-up me-2"></i>Dashboard
           </button>
@@ -407,6 +605,9 @@
           </button>
           <button class="btn nav-btn" data-target="adjust">
             <i class="bi bi-gear me-2"></i>ปรับสต็อก
+          </button>
+          <button class="btn nav-btn" onclick="logout()" style="margin-left: 20px; background: rgba(255,107,107,0.2); border-color: rgba(255,107,107,0.3);">
+            <i class="bi bi-box-arrow-right me-2"></i>ออกจากระบบ
           </button>
         </div>
       </div>
@@ -716,8 +917,96 @@
     let filteredStockInProducts = [];
     let filteredStockOutProducts = [];
     let filteredAdjustProducts = [];
+    
+    // ข้อมูลการเข้าสู่ระบบ
+    const LOGIN_CREDENTIALS = {
+      username: 'shinyou',
+      password: 'shinyou965'
+    };
+    
+    // ตรวจสอบสถานะการล็อกอิน
+    let isLoggedIn = sessionStorage.getItem('shinyou_logged_in') === 'true';
+
+    // ฟังก์ชันสำหรับการล็อกอิน
+    function handleLogin(event) {
+      event.preventDefault();
+      
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const loginBtn = document.getElementById('login-btn');
+      const loginError = document.getElementById('login-error');
+      
+      // แสดง loading
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังตรวจสอบ...';
+      
+      // จำลองการตรวจสอบ (delay เล็กน้อย)
+      setTimeout(() => {
+        if (username === LOGIN_CREDENTIALS.username && password === LOGIN_CREDENTIALS.password) {
+          // ล็อกอินสำเร็จ
+          sessionStorage.setItem('shinyou_logged_in', 'true');
+          isLoggedIn = true;
+          
+          // ซ่อนหน้า login
+          document.getElementById('login-screen').style.display = 'none';
+          
+          // แสดงหน้า welcome
+          showWelcomeScreen();
+          
+          // ล้างฟอร์ม
+          document.getElementById('login-form').reset();
+          loginError.classList.add('d-none');
+          
+        } else {
+          // ล็อกอินไม่สำเร็จ
+          loginError.classList.remove('d-none');
+          
+          // ล้างรหัสผ่าน
+          document.getElementById('password').value = '';
+          document.getElementById('username').focus();
+        }
+        
+        // คืนค่าปุ่ม
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>เข้าสู่ระบบ';
+        
+      }, 1000);
+    }
+    
+    // ฟังก์ชันแสดง/ซ่อนรหัสผ่าน
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      const toggleIcon = document.getElementById('password-toggle');
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.remove('bi-eye');
+        toggleIcon.classList.add('bi-eye-slash');
+      } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.remove('bi-eye-slash');
+        toggleIcon.classList.add('bi-eye');
+      }
+    }
+    
+    // ฟังก์ชันออกจากระบบ
+    function logout() {
+      sessionStorage.removeItem('shinyou_logged_in');
+      isLoggedIn = false;
+      location.reload();
+    }
+    
+    // ฟังก์ชันแสดงหน้า Welcome
+    function showWelcomeScreen() {
+      document.getElementById('welcome-screen').classList.remove('d-none');
+    }
 
     function startApp() {
+      if (!isLoggedIn) {
+        alert('กรุณาเข้าสู่ระบบก่อน');
+        return;
+      }
+      
       document.getElementById('welcome-screen').classList.add('d-none');
       document.getElementById('main-app').classList.remove('d-none');
       loadProductsForAllTables();
@@ -1173,6 +1462,18 @@
 
     // เริ่มต้นโปรแกรม
     document.addEventListener("DOMContentLoaded", function() {
+      // ตรวจสอบสถานะการล็อกอิน
+      if (isLoggedIn) {
+        document.getElementById('login-screen').style.display = 'none';
+        showWelcomeScreen();
+      } else {
+        document.getElementById('welcome-screen').classList.add('d-none');
+        document.getElementById('main-app').classList.add('d-none');
+      }
+      
+      // เพิ่ม event listener สำหรับฟอร์มล็อกอิน
+      document.getElementById('login-form').addEventListener('submit', handleLogin);
+      
       // ตั้งค่าวันที่เป็นวันปัจจุบัน
       const today = getTodayDate();
       document.getElementById('stockin-date').value = today;
