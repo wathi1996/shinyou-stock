@@ -381,6 +381,32 @@
         <input type="date" id="stockin-date" class="form-control mx-auto" style="width: 200px;" required>
       </div>
 
+      <!-- Filter Section for Stock In -->
+      <div class="filter-container">
+        <div class="row align-items-center">
+          <div class="col-md-3">
+            <label class="form-label fw-bold">
+              <i class="bi bi-funnel me-2"></i>กรองข้อมูล:
+            </label>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select filter-select" id="stockin-supplier-filter">
+              <option value="">ทุก Supplier</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select filter-select" id="stockin-category-filter">
+              <option value="">ทุกหมวดหมู่</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <button class="btn reset-btn" onclick="resetStockInFilters()">
+              <i class="bi bi-arrow-clockwise me-2"></i>รีเซ็ต
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="table-container">
         <div class="table-responsive">
           <table class="table table-hover">
@@ -425,6 +451,32 @@
           <i class="bi bi-calendar-event me-2"></i>วันที่เบิกสินค้า
         </label>
         <input type="date" id="stockout-date" class="form-control mx-auto" style="width: 200px;" required>
+      </div>
+
+      <!-- Filter Section for Stock Out -->
+      <div class="filter-container">
+        <div class="row align-items-center">
+          <div class="col-md-3">
+            <label class="form-label fw-bold">
+              <i class="bi bi-funnel me-2"></i>กรองข้อมูล:
+            </label>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select filter-select" id="stockout-supplier-filter">
+              <option value="">ทุก Supplier</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select filter-select" id="stockout-category-filter">
+              <option value="">ทุกหมวดหมู่</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <button class="btn reset-btn" onclick="resetStockOutFilters()">
+              <i class="bi bi-arrow-clockwise me-2"></i>รีเซ็ต
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="table-container">
@@ -473,6 +525,32 @@
         <input type="date" id="adjust-date" class="form-control mx-auto" style="width: 200px;" required>
       </div>
 
+      <!-- Filter Section for Adjust Stock -->
+      <div class="filter-container">
+        <div class="row align-items-center">
+          <div class="col-md-3">
+            <label class="form-label fw-bold">
+              <i class="bi bi-funnel me-2"></i>กรองข้อมูล:
+            </label>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select filter-select" id="adjust-supplier-filter">
+              <option value="">ทุก Supplier</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select filter-select" id="adjust-category-filter">
+              <option value="">ทุกหมวดหมู่</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <button class="btn reset-btn" onclick="resetAdjustFilters()">
+              <i class="bi bi-arrow-clockwise me-2"></i>รีเซ็ต
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="table-container">
         <div class="table-responsive">
           <table class="table table-hover">
@@ -514,6 +592,9 @@
     // ตัวแปรสำหรับเก็บข้อมูลสินค้าทั้งหมด
     let allProducts = [];
     let filteredProducts = [];
+    let filteredStockInProducts = [];
+    let filteredStockOutProducts = [];
+    let filteredAdjustProducts = [];
 
     function startApp() {
       document.getElementById('welcome-screen').classList.add('d-none');
@@ -545,14 +626,20 @@
         // เก็บข้อมูลไว้ในตัวแปร global
         allProducts = data;
         filteredProducts = data;
+        filteredStockInProducts = data;
+        filteredStockOutProducts = data;
+        filteredAdjustProducts = data;
         
         // โหลด filter options
         loadFilterOptions();
+        loadStockInFilterOptions();
+        loadStockOutFilterOptions();
+        loadAdjustFilterOptions();
         
         renderTable("stock-table-body", filteredProducts, false);
-        renderTable("stockinTable", data, true);
-        renderTable("stockoutTable", data, true);
-        renderTable("adjust-table-body", data, true);
+        renderTable("stockinTable", filteredStockInProducts, true);
+        renderTable("stockoutTable", filteredStockOutProducts, true);
+        renderTable("adjust-table-body", filteredAdjustProducts, true);
       } catch (error) {
         console.error('Error loading products:', error);
         showAlert('ไม่สามารถโหลดข้อมูลสินค้าได้: ' + error.message, 'danger');
@@ -609,6 +696,162 @@
       document.getElementById('category-filter').value = '';
       filteredProducts = allProducts;
       renderTable("stock-table-body", filteredProducts, false);
+    }
+
+    // ฟังก์ชันสำหรับโหลด filter options ของ Stock In
+    function loadStockInFilterOptions() {
+      const supplierFilter = document.getElementById('stockin-supplier-filter');
+      const categoryFilter = document.getElementById('stockin-category-filter');
+      
+      // เคลียร์ options เก่า
+      supplierFilter.innerHTML = '<option value="">ทุก Supplier</option>';
+      categoryFilter.innerHTML = '<option value="">ทุกหมวดหมู่</option>';
+      
+      // ดึงรายการ suppliers และ categories ที่ไม่ซ้ำ
+      const suppliers = [...new Set(allProducts.map(p => p.supplier).filter(s => s))];
+      const categories = [...new Set(allProducts.map(p => p.category).filter(c => c))];
+      
+      // เพิ่ม options สำหรับ suppliers
+      suppliers.forEach(supplier => {
+        const option = document.createElement('option');
+        option.value = supplier;
+        option.textContent = supplier;
+        supplierFilter.appendChild(option);
+      });
+      
+      // เพิ่ม options สำหรับ categories
+      categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        categoryFilter.appendChild(option);
+      });
+    }
+
+    // ฟังก์ชันสำหรับโหลด filter options ของ Stock Out
+    function loadStockOutFilterOptions() {
+      const supplierFilter = document.getElementById('stockout-supplier-filter');
+      const categoryFilter = document.getElementById('stockout-category-filter');
+      
+      // เคลียร์ options เก่า
+      supplierFilter.innerHTML = '<option value="">ทุก Supplier</option>';
+      categoryFilter.innerHTML = '<option value="">ทุกหมวดหมู่</option>';
+      
+      // ดึงรายการ suppliers และ categories ที่ไม่ซ้ำ
+      const suppliers = [...new Set(allProducts.map(p => p.supplier).filter(s => s))];
+      const categories = [...new Set(allProducts.map(p => p.category).filter(c => c))];
+      
+      // เพิ่ม options สำหรับ suppliers
+      suppliers.forEach(supplier => {
+        const option = document.createElement('option');
+        option.value = supplier;
+        option.textContent = supplier;
+        supplierFilter.appendChild(option);
+      });
+      
+      // เพิ่ม options สำหรับ categories
+      categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        categoryFilter.appendChild(option);
+      });
+    }
+
+    // ฟังก์ชันสำหรับโหลด filter options ของ Adjust
+    function loadAdjustFilterOptions() {
+      const supplierFilter = document.getElementById('adjust-supplier-filter');
+      const categoryFilter = document.getElementById('adjust-category-filter');
+      
+      // เคลียร์ options เก่า
+      supplierFilter.innerHTML = '<option value="">ทุก Supplier</option>';
+      categoryFilter.innerHTML = '<option value="">ทุกหมวดหมู่</option>';
+      
+      // ดึงรายการ suppliers และ categories ที่ไม่ซ้ำ
+      const suppliers = [...new Set(allProducts.map(p => p.supplier).filter(s => s))];
+      const categories = [...new Set(allProducts.map(p => p.category).filter(c => c))];
+      
+      // เพิ่ม options สำหรับ suppliers
+      suppliers.forEach(supplier => {
+        const option = document.createElement('option');
+        option.value = supplier;
+        option.textContent = supplier;
+        supplierFilter.appendChild(option);
+      });
+      
+      // เพิ่ม options สำหรับ categories
+      categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        categoryFilter.appendChild(option);
+      });
+    }
+
+    // ฟังก์ชันสำหรับกรองข้อมูล Stock In
+    function filterStockInProducts() {
+      const supplierFilter = document.getElementById('stockin-supplier-filter').value;
+      const categoryFilter = document.getElementById('stockin-category-filter').value;
+      
+      filteredStockInProducts = allProducts.filter(product => {
+        const supplierMatch = !supplierFilter || product.supplier === supplierFilter;
+        const categoryMatch = !categoryFilter || product.category === categoryFilter;
+        return supplierMatch && categoryMatch;
+      });
+      
+      renderTable("stockinTable", filteredStockInProducts, true);
+    }
+
+    // ฟังก์ชันสำหรับกรองข้อมูล Stock Out
+    function filterStockOutProducts() {
+      const supplierFilter = document.getElementById('stockout-supplier-filter').value;
+      const categoryFilter = document.getElementById('stockout-category-filter').value;
+      
+      filteredStockOutProducts = allProducts.filter(product => {
+        const supplierMatch = !supplierFilter || product.supplier === supplierFilter;
+        const categoryMatch = !categoryFilter || product.category === categoryFilter;
+        return supplierMatch && categoryMatch;
+      });
+      
+      renderTable("stockoutTable", filteredStockOutProducts, true);
+    }
+
+    // ฟังก์ชันสำหรับกรองข้อมูล Adjust
+    function filterAdjustProducts() {
+      const supplierFilter = document.getElementById('adjust-supplier-filter').value;
+      const categoryFilter = document.getElementById('adjust-category-filter').value;
+      
+      filteredAdjustProducts = allProducts.filter(product => {
+        const supplierMatch = !supplierFilter || product.supplier === supplierFilter;
+        const categoryMatch = !categoryFilter || product.category === categoryFilter;
+        return supplierMatch && categoryMatch;
+      });
+      
+      renderTable("adjust-table-body", filteredAdjustProducts, true);
+    }
+
+    // ฟังก์ชันสำหรับรีเซ็ต filter ของ Stock In
+    function resetStockInFilters() {
+      document.getElementById('stockin-supplier-filter').value = '';
+      document.getElementById('stockin-category-filter').value = '';
+      filteredStockInProducts = allProducts;
+      renderTable("stockinTable", filteredStockInProducts, true);
+    }
+
+    // ฟังก์ชันสำหรับรีเซ็ต filter ของ Stock Out
+    function resetStockOutFilters() {
+      document.getElementById('stockout-supplier-filter').value = '';
+      document.getElementById('stockout-category-filter').value = '';
+      filteredStockOutProducts = allProducts;
+      renderTable("stockoutTable", filteredStockOutProducts, true);
+    }
+
+    // ฟังก์ชันสำหรับรีเซ็ต filter ของ Adjust
+    function resetAdjustFilters() {
+      document.getElementById('adjust-supplier-filter').value = '';
+      document.getElementById('adjust-category-filter').value = '';
+      filteredAdjustProducts = allProducts;
+      renderTable("adjust-table-body", filteredAdjustProducts, true);
     }
 
     // ฟังก์ชันสำหรับแสดงข้อมูลในตาราง
@@ -797,6 +1040,18 @@
       // เพิ่ม event listeners สำหรับ filters
       document.getElementById('supplier-filter').addEventListener('change', filterProducts);
       document.getElementById('category-filter').addEventListener('change', filterProducts);
+      
+      // เพิ่ม event listeners สำหรับ Stock In filters
+      document.getElementById('stockin-supplier-filter').addEventListener('change', filterStockInProducts);
+      document.getElementById('stockin-category-filter').addEventListener('change', filterStockInProducts);
+      
+      // เพิ่ม event listeners สำหรับ Stock Out filters
+      document.getElementById('stockout-supplier-filter').addEventListener('change', filterStockOutProducts);
+      document.getElementById('stockout-category-filter').addEventListener('change', filterStockOutProducts);
+      
+      // เพิ่ม event listeners สำหรับ Adjust filters
+      document.getElementById('adjust-supplier-filter').addEventListener('change', filterAdjustProducts);
+      document.getElementById('adjust-category-filter').addEventListener('change', filterAdjustProducts);
     });
   </script>
 </body>
